@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaCheckCircle, FaExclamationTriangle, FaLock } from "react-icons/fa";
-import {
-  clearPasswordResetData,
-  getPasswordResetData,
-  getRegisteredUsers,
-  normalizeRole,
-  setRegisteredUsers,
-} from "../../utils/auth";
+import { authApi } from "../../services/api";
 
 function ResetPassword() {
   const navigate = useNavigate();
@@ -28,21 +22,6 @@ function ResetPassword() {
       setError("Invalid reset link. Please request a new password reset.");
       return;
     }
-
-    // Validate token
-    const resetData = getPasswordResetData() || {};
-
-    if (!resetData.token || resetData.token !== token) {
-      setError("Invalid or expired reset token. Please request a new password reset.");
-      return;
-    }
-
-    if (Date.now() > resetData.expires) {
-      setError("Reset link has expired. Please request a new password reset.");
-      clearPasswordResetData();
-      return;
-    }
-
     setValidToken(true);
   }, [token]);
 
@@ -84,33 +63,15 @@ function ResetPassword() {
 
     setLoading(true);
     setError("");
-
-    // Update user password
-    setTimeout(() => {
-      const resetData = getPasswordResetData() || {};
-      const registeredUsers = getRegisteredUsers();
-
-      const userIndex = registeredUsers.findIndex(
-        (u) => u.email === resetData.email && normalizeRole(u.role) === normalizeRole(resetData.role)
-      );
-
-      if (userIndex !== -1) {
-        registeredUsers[userIndex].password = password;
-        setRegisteredUsers(registeredUsers);
-        clearPasswordResetData();
-
-        setSuccess(true);
-        setLoading(false);
-
-        // Auto redirect after success
-        setTimeout(() => {
-          navigate("/login");
-        }, 3000);
-      } else {
-        setError("User not found. Please try again.");
-        setLoading(false);
-      }
-    }, 2000);
+    try {
+      await authApi.resetPassword({ token, newPassword: password });
+      setSuccess(true);
+      setTimeout(() => navigate("/login"), 3000);
+    } catch (err) {
+      setError(err?.response?.data?.message || "Unable to reset password.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!validToken && !error) {

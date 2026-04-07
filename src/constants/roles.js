@@ -22,6 +22,7 @@ export const ROLE_LABELS = {
 export const ROLE_HOME = {
   [ROLES.ADMIN]: "/admin",
   [ROLES.TEACHER]: "/instructor",
+  instructor: "/instructor",
   [ROLES.STUDENT]: "/student",
   [ROLES.CONTENT]: "/content-creator",
 };

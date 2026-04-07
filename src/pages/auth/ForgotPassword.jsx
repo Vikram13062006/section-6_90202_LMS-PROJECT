@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaEnvelope, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
 import { ROLE_LABELS } from "../../constants/roles";
-import { getRegisteredUsers, normalizeRole, setPasswordResetData } from "../../utils/auth";
+import { authApi } from "../../services/api";
 import "./Auth.css";
 
 function ForgotPassword() {
@@ -33,36 +33,15 @@ function ForgotPassword() {
 
     setLoading(true);
     setError("");
-
-    // Simulate API call to check if user exists
-    setTimeout(() => {
-      const registeredUsers = getRegisteredUsers();
-      const normalizedEmail = email.trim().toLowerCase();
-      const user = registeredUsers.find(
-        (u) => u.email === normalizedEmail && normalizeRole(u.role) === normalizeRole(role)
-      );
-
-      if (!user) {
-        setError("No account found with this email and role combination.");
-        setLoading(false);
-        return;
-      }
-
-      // Generate reset token and store temporarily
-      const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      const resetData = {
-        email: normalizedEmail,
-        role,
-        token: resetToken,
-        expires: Date.now() + (15 * 60 * 1000) // 15 minutes
-      };
-
-      setPasswordResetData(resetData);
-      setResetTokenPreview(resetToken);
-
-      setLoading(false);
+    try {
+      const res = await authApi.forgotPassword({ email: email.trim().toLowerCase() });
+      setResetTokenPreview(res?.data?.resetToken || "");
       setStep(2);
-    }, 2000);
+    } catch (err) {
+      setError(err?.response?.data?.message || "Unable to request password reset.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleResend = () => {

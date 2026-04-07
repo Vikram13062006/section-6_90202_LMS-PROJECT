@@ -2,12 +2,27 @@ import { ROLE_HOME, ROLES } from "../constants/roles";
 
 const STORAGE_KEYS = {
   CURRENT_USER: "currentUser",
+  AUTH_TOKEN: "authToken",
   REGISTERED_USERS: "registeredUsers",
   ENROLLED_COURSES: "enrolledCourses",
   PASSWORD_RESET: "passwordReset",
 };
 
 export const normalizeRole = (role) => String(role || "").toLowerCase();
+
+export const toBackendRole = (role) => {
+  const normalized = normalizeRole(role);
+  if (normalized === ROLES.STUDENT) {
+    return "STUDENT";
+  }
+  if (normalized === ROLES.ADMIN) {
+    return "ADMIN";
+  }
+  if (normalized === ROLES.TEACHER || normalized === "instructor" || normalized === ROLES.CONTENT) {
+    return "INSTRUCTOR";
+  }
+  return String(role || "").trim().toUpperCase();
+};
 
 export const getRoleHome = (role) => ROLE_HOME[normalizeRole(role)] || "/";
 
@@ -31,7 +46,22 @@ export const getCurrentUser = () => readStorageJson(STORAGE_KEYS.CURRENT_USER, n
 
 export const setCurrentUser = (user) => writeStorageJson(STORAGE_KEYS.CURRENT_USER, user);
 
+export const getAuthToken = () => localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+
+export const setAuthToken = (token) => {
+  if (!token) {
+    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+    return;
+  }
+  localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+};
+
 export const clearCurrentUser = () => localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+
+export const clearAuthSession = () => {
+  clearCurrentUser();
+  localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+};
 
 export const getRegisteredUsers = () => readStorageJson(STORAGE_KEYS.REGISTERED_USERS, []);
 
@@ -52,10 +82,21 @@ export const canAccessRole = (userRole, allowedRoles = []) => {
     return true;
   }
   const normalizedUserRole = normalizeRole(userRole);
-  return allowedRoles.includes(normalizedUserRole);
+  const compatibleRoles = new Set([normalizedUserRole]);
+  if (normalizedUserRole === "instructor") {
+    compatibleRoles.add(ROLES.TEACHER);
+    compatibleRoles.add(ROLES.CONTENT);
+  }
+  if (normalizedUserRole === ROLES.TEACHER || normalizedUserRole === ROLES.CONTENT) {
+    compatibleRoles.add("instructor");
+  }
+  return allowedRoles.some((role) => compatibleRoles.has(normalizeRole(role)));
 };
 
 export const isPrivilegedRole = (role) => {
   const normalized = normalizeRole(role);
-  return normalized === ROLES.ADMIN || normalized === ROLES.TEACHER || normalized === ROLES.CONTENT;
+  return normalized === ROLES.ADMIN
+    || normalized === ROLES.TEACHER
+    || normalized === ROLES.CONTENT
+    || normalized === "instructor";
 };

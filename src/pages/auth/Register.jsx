@@ -3,13 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import Captcha from "../../components/Captcha";
 import "./Auth.css";
 import { ALL_ROLES } from "../../constants/roles";
-import {
-  getRegisteredUsers,
-  getRoleHome,
-  normalizeRole,
-  setCurrentUser,
-  setRegisteredUsers,
-} from "../../utils/auth";
+import { authApi, setAuthToken } from "../../services/api";
+import { getRoleHome, setCurrentUser, toBackendRole } from "../../utils/auth";
 
 const roles = ALL_ROLES;
 
@@ -28,7 +23,7 @@ function Register() {
 
   const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -57,20 +52,30 @@ function Register() {
 
     setSubmitting(true);
     try {
-      const users = getRegisteredUsers();
-      const exists = users.some(
-        (u) => u.email === email && normalizeRole(u.role) === normalizeRole(role)
-      );
-      if (exists) {
-        setError("User already exists for this role.");
-        return;
+      const res = await authApi.register({
+        email,
+        password,
+        role: toBackendRole(role),
+        fullName: email.split("@")[0].replace(/[._-]/g, " "),
+      });
+      const user = res?.data?.user;
+      const token = res?.data?.token;
+      if (!user || !token) throw new Error("Invalid response");
+      setAuthToken(token);
+      setCurrentUser(user);
+      navigate(getRoleHome(user.role), { replace: true });
+    } catch (err) {
+      const apiMessage = err?.response?.data?.message;
+      const firstFieldError = err?.response?.data?.errors
+        ? Object.values(err.response.data.errors)[0]
+        : null;
+      if (apiMessage || firstFieldError) {
+        setError(apiMessage || firstFieldError);
+      } else if (err?.code === "ERR_NETWORK") {
+        setError("Unable to connect to backend API. Start backend and try again.");
+      } else {
+        setError("Registration failed.");
       }
-
-      const newUser = { id: String(Date.now()), email, password, role };
-      setRegisteredUsers([...users, newUser]);
-      setCurrentUser({ id: newUser.id, email: newUser.email, role: newUser.role });
-
-      navigate(getRoleHome(role), { replace: true });
     } finally {
       setSubmitting(false);
     }

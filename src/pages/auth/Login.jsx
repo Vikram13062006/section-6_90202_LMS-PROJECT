@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
 import Captcha from "../../components/Captcha";
 import "./Auth.css";
 import { ALL_ROLES } from "../../constants/roles";
-import { getRegisteredUsers, getRoleHome, normalizeRole, setCurrentUser } from "../../utils/auth";
+import { authApi, setAuthToken } from "../../services/api";
+import { getRoleHome, setCurrentUser } from "../../utils/auth";
 
 const roles = ALL_ROLES;
 
@@ -42,39 +42,15 @@ function Login() {
 
     setSubmitting(true);
     try {
-      // Try API login first
-      const res = await axios.post(
-        "/api/auth/login",
-        { email, password, role },
-        { withCredentials: true }
-      );
+      const res = await authApi.login({ email, password });
       const user = res?.data?.user;
-      if (!user) throw new Error("Invalid response");
+      const token = res?.data?.token;
+      if (!user || !token) throw new Error("Invalid response");
+      setAuthToken(token);
       setCurrentUser(user);
       navigate(getRoleHome(user.role), { replace: true });
-    } catch {
-      // Fallback: localStorage users
-      const users = getRegisteredUsers();
-      const userByEmailAndRole = users.find(
-        (u) => u.email === email && normalizeRole(u.role) === role
-      );
-
-      if (!userByEmailAndRole) {
-        setError("User not found. Please register first.");
-        return;
-      }
-
-      if (userByEmailAndRole.password !== password) {
-        setError("Invalid password.");
-        return;
-      }
-
-      setCurrentUser({
-        id: userByEmailAndRole.id,
-        email: userByEmailAndRole.email,
-        role: userByEmailAndRole.role,
-      });
-      navigate(getRoleHome(userByEmailAndRole.role), { replace: true });
+    } catch (err) {
+      setError(err?.response?.data?.message || "Login failed.");
     } finally {
       setSubmitting(false);
     }
