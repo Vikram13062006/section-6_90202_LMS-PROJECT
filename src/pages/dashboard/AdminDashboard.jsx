@@ -18,6 +18,7 @@ import {
 import { getAllUsers, getUsersByRole, deleteUser, saveUser, generatePlatformReport } from "@utils/admin";
 import { getCourses, getEnrollments, getSubmissions } from "@utils/courses";
 import { getCurrentUser } from "@utils/auth";
+import { adminApi } from "../../services/api";
 import ExportPanel from "@components/ExportPanel";
 import AnalyticsChart from "@components/AnalyticsChart";
 import { exportUserReport, exportEnrollmentReport, exportGradeReport } from "@utils/exports";
@@ -39,8 +40,39 @@ const AdminDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
   const [submissions, setSubmissions] = useState([]);
 
+  const mapBackendRoleToUiRole = (role) => {
+    const normalized = String(role || "").toUpperCase();
+    if (normalized === "ADMIN") {
+      return "admin";
+    }
+    if (normalized === "INSTRUCTOR") {
+      return "teacher";
+    }
+    return "student";
+  };
+
+  const normalizeUserForUi = (user) => ({
+    id: String(user?.id ?? ""),
+    name: user?.name || user?.fullName || "N/A",
+    email: user?.email || "",
+    role: mapBackendRoleToUiRole(user?.role),
+    status: user?.active === false || user?.status === "inactive" ? "inactive" : "active",
+    joinDate: user?.joinDate || new Date().toISOString(),
+  });
+
+  const loadUsers = async () => {
+    try {
+      const response = await adminApi.getUsers();
+      const serverUsers = Array.isArray(response?.data) ? response.data.map(normalizeUserForUi) : [];
+      setUsers(serverUsers);
+    } catch {
+      // Fallback for legacy local mode when backend admin APIs are unavailable.
+      setUsers(getAllUsers());
+    }
+  };
+
   useEffect(() => {
-    setUsers(getAllUsers());
+    loadUsers();
     setCourses(getCourses());
     setEnrollments(getEnrollments());
     setSubmissions(getSubmissions());
@@ -81,17 +113,27 @@ const AdminDashboard = () => {
     [users, enrollments, courses]
   );
 
-  const handleDeleteUser = (userId) => {
+  const handleDeleteUser = async (userId) => {
     if (window.confirm("Are you sure? This action cannot be undone.")) {
-      deleteUser(userId);
-      setUsers(getAllUsers());
+      try {
+        await adminApi.deleteUser(userId);
+        await loadUsers();
+      } catch {
+        deleteUser(userId);
+        setUsers(getAllUsers());
+      }
     }
   };
 
-  const handleToggleUserStatus = (user) => {
+  const handleToggleUserStatus = async (user) => {
     const newStatus = user.status === "active" ? "inactive" : "active";
-    saveUser({ ...user, status: newStatus });
-    setUsers(getAllUsers());
+    try {
+      await adminApi.updateUserStatus(user.id, newStatus === "active");
+      await loadUsers();
+    } catch {
+      saveUser({ ...user, status: newStatus });
+      setUsers(getAllUsers());
+    }
   };
 
   const handleGenerateReport = () => {

@@ -1,9 +1,13 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8081/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL
+  || (import.meta.env.PROD && typeof window !== "undefined"
+    ? `${window.location.origin}/api`
+    : "http://localhost:8081/api");
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -74,6 +78,13 @@ export const contentApi = {
   create: (formData) => api.post("/content", formData, { headers: { "Content-Type": "multipart/form-data" } }),
   update: (id, formData) => api.put(`/content/${id}`, formData, { headers: { "Content-Type": "multipart/form-data" } }),
   remove: (id) => api.delete(`/content/${id}`),
+};
+
+export const adminApi = {
+  getUsers: () => api.get("/admin/users"),
+  getStudents: () => api.get("/admin/students"),
+  updateUserStatus: (id, active) => api.patch(`/admin/users/${id}/status`, { active }),
+  deleteUser: (id) => api.delete(`/admin/users/${id}`),
 };
 
 export default api;
