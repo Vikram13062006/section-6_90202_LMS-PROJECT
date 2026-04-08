@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: my-lms-backend
+    env: java
+    rootDir: backend
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -jar target/backend-0.0.1-SNAPSHOT.jar
+    autoDeploy: true
+    envVars:
+      - key: APP_PROFILE
+        value: mysql
+      - key: MYSQL_URL
+        sync: false
+      - key: MYSQL_USER
+        sync: false
+      - key: MYSQL_PASSWORD
+        sync: false
+      - key: APP_CORS_ALLOWED_ORIGIN_PATTERNS
+        value: https://kluniversityeducationlms.netlify.app,https://*.netlify.app
+      - key: JWT_SECRET
+        value: ChangeMeChangeMeChangeMeChangeMeChangeMe
