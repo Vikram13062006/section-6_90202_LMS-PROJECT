@@ -13,6 +13,43 @@ const api = axios.create({
   },
 });
 
+export const extractApiErrorMessage = (err, fallbackMessage = "Request failed.") => {
+  const response = err?.response;
+  const data = response?.data;
+  const status = response?.status;
+  const contentType = String(response?.headers?.["content-type"] || "").toLowerCase();
+
+  if (err?.code === "ERR_NETWORK") {
+    return "Unable to connect to backend API. Check backend deployment and VITE_API_URL.";
+  }
+
+  if (data?.message) {
+    return data.message;
+  }
+
+  if (data?.errors && typeof data.errors === "object") {
+    const firstFieldError = Object.values(data.errors)[0];
+    if (firstFieldError) {
+      return String(firstFieldError);
+    }
+  }
+
+  if (typeof data === "string") {
+    const looksLikeHtml = contentType.includes("text/html")
+      || data.toLowerCase().includes("<!doctype html")
+      || data.toLowerCase().includes("<html");
+    if (looksLikeHtml && import.meta.env.PROD) {
+      return "Backend API route is not configured for this deployment. Set VITE_API_URL to your backend URL ending with /api.";
+    }
+  }
+
+  if ((status === 404 || status === 502 || status === 503) && import.meta.env.PROD) {
+    return "Backend API is unavailable for this deployment. Verify VITE_API_URL and backend health.";
+  }
+
+  return fallbackMessage;
+};
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("authToken");
   if (token) {

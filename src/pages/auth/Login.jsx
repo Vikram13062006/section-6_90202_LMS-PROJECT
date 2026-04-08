@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Captcha from "../../components/Captcha";
 import "./Auth.css";
 import { ALL_ROLES } from "../../constants/roles";
-import { authApi, setAuthToken } from "../../services/api";
+import { authApi, extractApiErrorMessage, setAuthToken } from "../../services/api";
 import { getRoleHome, setCurrentUser } from "../../utils/auth";
 
 const roles = ALL_ROLES;
@@ -50,7 +50,7 @@ function Login() {
       setCurrentUser(user);
       navigate(getRoleHome(user.role), { replace: true });
     } catch (err) {
-      setError(err?.response?.data?.message || "Login failed.");
+      setError(extractApiErrorMessage(err, "Login failed."));
     } finally {
       setSubmitting(false);
     }

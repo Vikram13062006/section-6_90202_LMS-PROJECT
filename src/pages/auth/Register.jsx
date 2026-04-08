@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Captcha from "../../components/Captcha";
 import "./Auth.css";
 import { ALL_ROLES } from "../../constants/roles";
-import { authApi, setAuthToken } from "../../services/api";
+import { authApi, extractApiErrorMessage, setAuthToken } from "../../services/api";
 import { getRoleHome, setCurrentUser, toBackendRole } from "../../utils/auth";
 
 const roles = ALL_ROLES;
@@ -65,17 +65,7 @@ function Register() {
       setCurrentUser(user);
       navigate(getRoleHome(user.role), { replace: true });
     } catch (err) {
-      const apiMessage = err?.response?.data?.message;
-      const firstFieldError = err?.response?.data?.errors
-        ? Object.values(err.response.data.errors)[0]
-        : null;
-      if (apiMessage || firstFieldError) {
-        setError(apiMessage || firstFieldError);
-      } else if (err?.code === "ERR_NETWORK") {
-        setError("Unable to connect to backend API. Start backend and try again.");
-      } else {
-        setError("Registration failed.");
-      }
+      setError(extractApiErrorMessage(err, "Registration failed."));
     } finally {
       setSubmitting(false);
     }
