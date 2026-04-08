@@ -78,7 +78,7 @@ function Register() {
           <h1>Join EduLMS</h1>
           <p>Create your account and start with a role-specific workspace.</p>
         </div>
-      </section>
+      </section>>
 
       <section className="auth-right">
         <form className="auth-card" onSubmit={onSubmit} noValidate>

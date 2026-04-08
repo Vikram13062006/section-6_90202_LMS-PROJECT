@@ -1,9 +1,37 @@
 import axios from "axios";
 
+const DEFAULT_RENDER_API_URL = "https://my-lms-backend.onrender.com/api";
+
+const getStoredApiBaseUrl = () => {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  try {
+    return window.localStorage.getItem("apiBaseUrl") || "";
+  } catch {
+    return "";
+  }
+};
+
+// In dev: http://localhost:8081/api
+// In prod: use VITE_API_URL env var, or fallback to Render URL, or same origin
 const API_BASE_URL = import.meta.env.VITE_API_URL
-  || (import.meta.env.PROD && typeof window !== "undefined"
-    ? `${window.location.origin}/api`
-    : "http://localhost:8081/api");
+  || getStoredApiBaseUrl()
+  || (!import.meta.env.PROD ? "http://localhost:8081/api" : "")
+  || DEFAULT_RENDER_API_URL
+  || (typeof window !== "undefined" ? `${window.location.origin}/api` : "");
+
+// Expose for debugging
+if (typeof window !== "undefined") {
+  window.__DEBUG_API__ = {
+    API_BASE_URL,
+    VITE_API_URL: import.meta.env.VITE_API_URL,
+    PROD: import.meta.env.PROD,
+    DEV: import.meta.env.DEV,
+  };
+  console.log("[API Debug]", window.__DEBUG_API__);
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -11,6 +39,15 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("authToken");
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export const extractApiErrorMessage = (err, fallbackMessage = "Request failed.") => {
@@ -50,21 +87,21 @@ export const extractApiErrorMessage = (err, fallbackMessage = "Request failed.")
   return fallbackMessage;
 };
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("authToken");
-  if (token) {
-    config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
 export const setAuthToken = (token) => {
   if (token) {
     localStorage.setItem("authToken", token);
   } else {
     localStorage.removeItem("authToken");
   }
+};
+
+export const setApiBaseUrl = (baseUrl) => {
+  if (!baseUrl) {
+    localStorage.removeItem("apiBaseUrl");
+    return;
+  }
+
+  localStorage.setItem("apiBaseUrl", baseUrl.replace(/\/$/, ""));
 };
 
 export const clearAuthToken = () => {
