@@ -1,51 +1,20 @@
 {
-  "name": "lms",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.13.5",
-    "bootstrap": "^5.3.8",
-    "chart.js": "^4.5.1",
-    "react": "^19.2.4",
-    "react-chartjs-2": "^5.3.1",
-    "react-dom": "^19.2.4",
-    "react-google-recaptcha": "^3.1.0",
-    "react-icons": "^5.5.0",
-    "react-router-dom": "^6.30.3",
-    "tinycolor2": "^1.6.0",
-    "web-vitals": "^2.1.4"
-  },
+  "name": "my-lms",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "eslint .",
-    "test": "vitest"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vikram13062006/section-6_90202_LMS-PROJECT.git"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Vikram13062006/section-6_90202_LMS-PROJECT/issues"
   },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^5.1.4",
-    "vite": "^7.3.1"
-  }
+  "homepage": "https://github.com/Vikram13062006/section-6_90202_LMS-PROJECT#readme"
 }
