@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: my-lms-backend
+    runtime: docker
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: APP_PROFILE
+        value: mysql
+      - key: MYSQL_URL
+        sync: false
+      - key: MYSQL_USER
+        sync: false
+      - key: MYSQL_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: APP_CORS_ALLOWED_ORIGIN_PATTERNS
+        value: https://*.onrender.com,https://*.netlify.app,http://localhost:5173
+      - key: APP_UPLOAD_DIR
+        value: uploads
+
+  - type: web
+    name: my-lms-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: true
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
