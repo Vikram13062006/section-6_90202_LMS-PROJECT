@@ -6,7 +6,7 @@ const envBaseUrl = normalizeBaseUrl(import.meta.env.VITE_API_URL);
 const localOverrideBaseUrl = normalizeBaseUrl(localStorage.getItem("apiBaseUrl"));
 const fallbackBaseUrl = import.meta.env.DEV
   ? "/api"
-  : "https://section-6-90202-lms-backend.onrender.com/api";
+  : "https://my-lms-backend-production.up.railway.app";
 
 const API_BASE_URL = localOverrideBaseUrl || envBaseUrl || fallbackBaseUrl;
 
