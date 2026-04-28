@@ -37,7 +37,6 @@ com\lms\service\ContentService.class
 com\lms\entity\AssignmentSubmission.class
 com\lms\repository\CourseRepository.class
 com\lms\service\AuthService.class
-com\lms\security\SecurityConfig.class
 com\lms\entity\User.class
 com\lms\repository\ContentRepository.class
 com\lms\dto\QuizDtos$QuizSubmissionResponse.class
@@ -66,8 +65,6 @@ com\lms\repository\AssignmentSubmissionRepository.class
 com\lms\service\AnalyticsService.class
 com\lms\controller\ProgressController.class
 com\lms\config\WebConfig.class
-com\lms\security\JwtAuthenticationFilter.class
-com\lms\security\JwtTokenService.class
 com\lms\service\ProgressService.class
 com\lms\dto\ProgressDtos$ProgressRequest.class
 com\lms\LmsApplication.class

@@ -1,0 +1,11 @@
+{
+    "token":  "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlckBleGFtcGxlLmNvbSIsInVzZXJJZCI6NCwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzc3MzQ3MzE5LCJleHAiOjE3Nzc0MzM3MTl9.gPGsaG9JFvkuedr4KxsTIs_HKp35kyU9vO5LRFqKfNw",
+    "user":  {
+                 "id":  4,
+                 "fullName":  "Test User",
+                 "email":  "testuser@example.com",
+                 "role":  "ADMIN",
+                 "department":  "CS",
+                 "active":  true
+             }
+}
